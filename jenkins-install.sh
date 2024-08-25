@@ -6,7 +6,7 @@ JENKINS_REPO_KEY_URL="https://pkg.jenkins.io/redhat-stable/jenkins.io.key"
 JENKINS_HOME="/var/lib/jenkins"
 JENKINS_CAAS_HOME="/etc/sysconfig/jenkins/casc_configs"
 JENKINS_LOG_HOME="/var/log/jenkins"
-EFS_NAME="YOUR EFS NAME"
+EFS_NAME="AWS_EFS_NAME"
 
 # 시스템 업데이트 및 필수 패키지 설치
 dnf update -y && dnf install -y java-17-amazon-corretto-devel wget git

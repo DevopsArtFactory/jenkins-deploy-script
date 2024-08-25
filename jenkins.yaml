@@ -10,7 +10,7 @@ jenkins:
   authorizationStrategy:
     globalMatrix:
       permissions:
-        - "Overall/Administer:<Your_Org>*<Team>"
+        - "Overall/Administer:ORG_NAME*TEAM_NAME"
   views:
     - all:
         name: "all"
