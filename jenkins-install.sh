@@ -63,8 +63,8 @@ JENKINS_CLIENT_SECRET=$(aws ssm get-parameter --name "jenkins_client_secret" --w
 
 sed -i "s/jenkins_client_id/$JENKINS_CLIENT_ID/g" $JENKINS_CAAS_HOME/jenkins.yaml
 sed -i "s/jenkins_client_secret/$JENKINS_CLIENT_SECRET/g" $JENKINS_CAAS_HOME/jenkins.yaml
-sed -i "s/ORG_NAME/$ENV_ORG_NAME/g" $JENKINS_CAAS_HOME/jenkins.yaml
-sed -i "s/TEAM_NAME/$ENV_TEAM_NAME/g" $JENKINS_CAAS_HOME/jenkins.yaml
+sed -i "s/ORG_NAME/$ORG_NAME/g" $JENKINS_CAAS_HOME/jenkins.yaml
+sed -i "s/TEAM_NAME/$TEAM_NAME/g" $JENKINS_CAAS_HOME/jenkins.yaml
 
 sudo systemctl enable jenkins
 
