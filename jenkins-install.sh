@@ -7,6 +7,8 @@ JENKINS_HOME="/var/lib/jenkins"
 JENKINS_CAAS_HOME="/etc/sysconfig/jenkins/casc_configs"
 JENKINS_LOG_HOME="/var/log/jenkins"
 EFS_NAME="AWS_EFS_NAME"
+ORG_NAME="ENV_ORG_NAME"
+TEMA_NAME="ENV_TEAM_NAME"
 
 # 시스템 업데이트 및 필수 패키지 설치
 dnf update -y && dnf install -y java-17-amazon-corretto-devel wget git
@@ -61,6 +63,8 @@ JENKINS_CLIENT_SECRET=$(aws ssm get-parameter --name "jenkins_client_secret" --w
 
 sed -i "s/jenkins_client_id/$JENKINS_CLIENT_ID/g" $JENKINS_CAAS_HOME/jenkins.yaml
 sed -i "s/jenkins_client_secret/$JENKINS_CLIENT_SECRET/g" $JENKINS_CAAS_HOME/jenkins.yaml
+sed -i "s/ORG_NAME/$ENV_ORG_NAME/g" $JENKINS_CAAS_HOME/jenkins.yaml
+sed -i "s/TEAM_NAME/$ENV_TEAM_NAME/g" $JENKINS_CAAS_HOME/jenkins.yaml
 
 sudo systemctl enable jenkins
 
