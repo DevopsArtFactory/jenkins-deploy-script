@@ -1,0 +1,129 @@
+version: 0.2
+
+env:
+  variables:
+    SERVICE_NAME: "jenkins"
+    SECURITY_GROUP_NAME: ""
+    VPC_NAME: ""
+    TARGET_GROUP_NAME: ""
+    EFS_NAME: ""
+    ORG_NAME: ""
+    TEMA_NAME: ""
+  parameter-store:
+    GITHUB_TOKEN: "/CodeBuild/GITHUB_TOKEN"
+
+phases:
+  install:
+    commands:
+      - aws --version
+
+  pre_build:
+    commands:
+      # 환경 변수 설정
+      - export NEW_LAUNCH_CONFIG_NAME=new-launch-config-$(date +%s)
+      - export SECURITY_GROUP_ID=$(aws ec2 describe-security-groups --filters "Name=group-name,Values=$SECURITY_GROUP_NAME" --query "SecurityGroups[0].GroupId" --output text)  # 미리 생성된 Security Group ID
+      - export VPC_ID=$(aws ec2 describe-vpcs --filters "Name=tag:Name,Values=$VPC_NAME" --query "Vpcs[0].VpcId" --output text)  # VPC ID를 환경 변수로 설정
+      - export TARGET_GROUP_ARN=$(aws elbv2 describe-target-groups --names $TARGET_GROUP_NAME --query "TargetGroups[0].TargetGroupArn" --output text)
+      # SUBNETS 변수를 AWS CLI를 사용해 동적으로 설정
+      - echo "Retrieving private subnets for VPC..."
+      - export SUBNETS=$(aws ec2 describe-subnets --filters "Name=vpc-id,Values=$VPC_ID" "Name=tag:Name,Values=private*" --query "Subnets[*].SubnetId" --output text | tr '\t' ',' | sed 's/,$//')
+            # 버전 정보 설정
+      - echo "Determining current ASG version..."
+      - export VERSION=$(aws autoscaling describe-auto-scaling-groups --auto-scaling-group-names $(aws autoscaling describe-auto-scaling-groups --query "AutoScalingGroups[?AutoScalingGroupName.starts_with(@, '$SERVICE_NAME')].AutoScalingGroupName" --output text) --query "AutoScalingGroups[*].AutoScalingGroupName" --output text | awk -F'-' '{print $NF}' | sort -n | tail -n 1)
+      - |
+        if [ -z "$VERSION" ]; then 
+          export VERSION=0000;
+        else
+          export BLUE_ASG_NAME=${SERVICE_NAME}-${VERSION}
+          echo "Old ASG version - ${BLUE_ASG_NAME}"
+          export VERSION=$(printf "%04d" $((10#$VERSION + 1))); 
+        fi
+        export GREEN_ASG_NAME=${SERVICE_NAME}-${VERSION}
+        echo "New ASG version - ${GREEN_ASG_NAME}"
+  build:
+    commands:
+      # User Data 스크립트 생성
+      - git clone https://github.com/DevopsArtFactory/jenkins-deploy-script
+      - echo "Creating User Data script..."
+      - cp jenkins-deploy-script/jenkins-install.sh /tmp/userdata.sh
+  post_build:
+    commands:
+      # 현재 활성화된 ASG 확인 및 변수 설정
+      - echo "Checking for existing ASGs..."
+      - ACTIVE_ASG=$(aws autoscaling describe-auto-scaling-groups --auto-scaling-group-names $BLUE_ASG_NAME $GREEN_ASG_NAME --query 'AutoScalingGroups[?DesiredCapacity>`0`].AutoScalingGroupName' --output text)
+
+      # ASG가 없는 경우, 초기화 작업 수행
+      - |
+        if [ -z "$ACTIVE_ASG" ]; then
+            echo "No active ASG found. Initializing Blue ASG...";
+            export TARGET_ASG_NAME=$GREEN_ASG_NAME;
+            export IS_INITIAL_DEPLOYMENT=true;
+        else
+            echo "Active ASG found: $ACTIVE_ASG";
+            export IS_INITIAL_DEPLOYMENT=false;
+            # ACTIVE_ASG가 BLUE_ASG_NAME인지 확인하고 스왑
+            if [ "$ACTIVE_ASG" == "$BLUE_ASG_NAME" ]; then
+                echo "Currently active ASG is $BLUE_ASG_NAME. Swapping to $GREEN_ASG_NAME...";
+                export TARGET_ASG_NAME=$GREEN_ASG_NAME;
+            fi
+        fi
+
+      # 새로운 Launch Configuration 생성
+      - echo "Creating new Launch Configuration..."
+      - aws autoscaling create-launch-configuration --launch-configuration-name $NEW_LAUNCH_CONFIG_NAME --image-id ami-0c2acfcb2ac4d02a0 --instance-type t3.small --user-data file:///tmp/userdata.sh --security-groups $SECURITY_GROUP_ID --iam-instance-profile jenkins-profile
+
+      # 최초 배포인 경우 ASG 생성, 그렇지 않으면 기존 ASG 업데이트
+      - |
+        echo "Creating Auto Scaling Group: $TARGET_ASG_NAME";
+        aws autoscaling create-auto-scaling-group --auto-scaling-group-name $TARGET_ASG_NAME --launch-configuration-name $NEW_LAUNCH_CONFIG_NAME --min-size 1 --max-size 3 --desired-capacity 1 --target-group-arns $TARGET_GROUP_ARN --vpc-zone-identifier $SUBNETS  --tags Key=Name,Value=$TARGET_ASG_NAME;
+        sleep 30;
+
+        echo "Getting instance IDs for ASG: $TARGET_ASG_NAME";
+        INSTANCE_IDS=$(aws autoscaling describe-auto-scaling-groups --auto-scaling-group-names $TARGET_ASG_NAME --query 'AutoScalingGroups[0].Instances[*].InstanceId' --output text);
+
+        DESIRED_CAPACITY=$(aws autoscaling describe-auto-scaling-groups --auto-scaling-group-names $TARGET_ASG_NAME --query 'AutoScalingGroups[0].DesiredCapacity' --output text);
+        echo "Performing health checks on the new ASG...";
+        MAX_RETRIES=10
+        RETRY_INTERVAL=30
+        ATTEMPTS=0
+        HEALTHY_INSTANCES=0
+
+        while [ $ATTEMPTS -lt $MAX_RETRIES ]; do
+            HEALTHY_INSTANCES=0
+            echo $INSTANCE_IDS
+            for INSTANCE_ID in $INSTANCE_IDS; do
+                # 인스턴스 상태 확인
+                INSTANCE_HEALTH=$(aws elbv2 describe-target-health --target-group-arn $TARGET_GROUP_ARN --targets Id=$INSTANCE_ID --query 'TargetHealthDescriptions[0].TargetHealth.State' --output text)
+
+                if [ "$INSTANCE_HEALTH" == "healthy" ]; then
+                    HEALTHY_INSTANCES=$((HEALTHY_INSTANCES + 1))
+                fi
+            done
+
+            if [ $HEALTHY_INSTANCES -eq $DESIRED_CAPACITY ]; then
+                echo "All instances are healthy.";
+                break
+            else
+                echo "Not all instances are healthy. Retrying in $RETRY_INTERVAL seconds...";
+                sleep $RETRY_INTERVAL
+            fi
+
+              ATTEMPTS=$((ATTEMPTS + 1))
+        done
+        
+        if [ "$IS_INITIAL_DEPLOYMENT" == "false" ]; then
+          if [ $HEALTHY_INSTANCES -eq $(echo $INSTANCE_IDS | wc -w) ]; then
+              echo "All instances are healthy. Proceeding with ASG deletion.";
+              # 기존 Auto Scaling Group 삭제
+              aws autoscaling delete-auto-scaling-group --auto-scaling-group-name $ACTIVE_ASG --force-delete;
+          else
+              echo "Not all instances are healthy after retries. Aborting ASG deletion.";
+              exit 1
+          fi
+        else
+              echo "All instances are healthy.";
+        fi  
+
+artifacts:
+  files:
+    - '**/*'
