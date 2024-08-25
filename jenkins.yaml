@@ -1,0 +1,71 @@
+jenkins:
+  systemMessage: "This is jenkins"
+  securityRealm:
+    github:
+      githubWebUri: "https://github.com"
+      githubApiUri: "https://api.github.com"
+      clientID: "jenkins_client_id"
+      clientSecret: "jenkins_client_secret"
+      oauthScopes: "read:org,user:email"
+  authorizationStrategy:
+    globalMatrix:
+      permissions:
+        - "Overall/Administer:<Your_Org>*<Team>"
+  views:
+    - all:
+        name: "all"
+    - list:
+        columns:
+          - "status"
+          - "weather"
+          - "jobName"
+          - "lastSuccess"
+          - "lastFailure"
+          - "lastDuration"
+          - "buildButton"
+        includeRegex: "(.*BUILD.*)"
+        name: "build"
+    - list:
+        columns:
+          - "status"
+          - "weather"
+          - "jobName"
+          - "lastSuccess"
+          - "lastFailure"
+          - "lastDuration"
+          - "buildButton"
+        includeRegex: "(.*DEV.*)"
+        name: "dev"
+    - list:
+        columns:
+          - "status"
+          - "weather"
+          - "jobName"
+          - "lastSuccess"
+          - "lastFailure"
+          - "lastDuration"
+          - "buildButton"
+        includeRegex: "(.*STG.*)"
+        name: "stage"
+    - list:
+        columns:
+          - "status"
+          - "weather"
+          - "jobName"
+          - "lastSuccess"
+          - "lastFailure"
+          - "lastDuration"
+          - "buildButton"
+        includeRegex: "(.*QA.*)"
+        name: "qa"
+    - list:
+        columns:
+          - "status"
+          - "weather"
+          - "jobName"
+          - "lastSuccess"
+          - "lastFailure"
+          - "lastDuration"
+          - "buildButton"
+        includeRegex: "(.*PROD.*)"
+        name: "production"
