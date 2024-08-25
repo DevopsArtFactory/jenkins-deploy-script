@@ -44,7 +44,6 @@ phases:
   build:
     commands:
       # User Data 스크립트 생성
-      - ls -al
       - echo "Creating User Data script..."
       - cp jenkins-install.sh /tmp/userdata.sh
       - |
