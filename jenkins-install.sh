@@ -46,6 +46,7 @@ cp jenkins-deploy-script/jenkins.yaml $JENKINS_CAAS_HOME/jenkins.yaml
 cp jenkins-deploy-script/install-plugin.sh $JENKINS_HOME/install-plugin.sh
 cp jenkins-deploy-script/jenkins_support.sh /usr/local/bin/jenkins-support
 cp jenkins-deploy-script/plugins_default.txt $JENKINS_HOME/plugins_default.txt
+cp jenkins-deploy-script/credentials.xml $JENKINS_HOME/credentials.xml
 cp jenkins-deploy-script/override.conf $JENKINS_CAAS_HOME/override.conf
 cp jenkins-deploy-script/systemd.service /usr/lib/systemd/system/jenkins.service
 
@@ -70,6 +71,9 @@ sed -i "s/jenkins_client_id/$JENKINS_CLIENT_ID/g" $JENKINS_CAAS_HOME/jenkins.yam
 sed -i "s/jenkins_client_secret/$JENKINS_CLIENT_SECRET/g" $JENKINS_CAAS_HOME/jenkins.yaml
 sed -i "s/ORG_NAME/$ORG_NAME/g" $JENKINS_CAAS_HOME/jenkins.yaml
 sed -i "s/TEAM_NAME/$TEAM_NAME/g" $JENKINS_CAAS_HOME/jenkins.yaml
+
+AWS_ACCOUNT_ID=$(aws sts get-caller-identity --query "Account" --output text)
+sed -i "s/AWS_ACCOUNT_ID/$AWS_ACCOUNT_ID/g" $JENKINS_HOME/credentials.xml
 
 sudo systemctl enable jenkins
 
