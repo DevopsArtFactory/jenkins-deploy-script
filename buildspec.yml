@@ -44,9 +44,9 @@ phases:
   build:
     commands:
       # User Data 스크립트 생성
-      - git clone https://github.com/DevopsArtFactory/jenkins-deploy-script
+      - ls -al
       - echo "Creating User Data script..."
-      - cp jenkins-deploy-script/jenkins-install.sh /tmp/userdata.sh
+      - cp jenkins-install.sh /tmp/userdata.sh
       - |
         sed -i "s/AWS_EFS_NAME/$EFS_NAME/g" /tmp/userdata.sh
         sed -i "s/ENV_ORG_NAME/$ORG_NAME/g" /tmp/userdata.sh
