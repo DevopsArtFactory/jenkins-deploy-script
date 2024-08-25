@@ -8,7 +8,7 @@ JENKINS_CAAS_HOME="/etc/sysconfig/jenkins/casc_configs"
 JENKINS_LOG_HOME="/var/log/jenkins"
 EFS_NAME="AWS_EFS_NAME"
 ORG_NAME="ENV_ORG_NAME"
-TEMA_NAME="ENV_TEAM_NAME"
+TEAM_NAME="ENV_TEAM_NAME"
 
 # 시스템 업데이트 및 필수 패키지 설치
 dnf update -y && dnf install -y java-17-amazon-corretto-devel wget git
