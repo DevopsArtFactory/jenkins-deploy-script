@@ -6,6 +6,7 @@ JENKINS_REPO_KEY_URL="https://pkg.jenkins.io/redhat-stable/jenkins.io.key"
 JENKINS_HOME="/var/lib/jenkins"
 JENKINS_CAAS_HOME="/etc/sysconfig/jenkins/casc_configs"
 JENKINS_LOG_HOME="/var/log/jenkins"
+JENKINS_JOB_HOME=$JENKINS_HOME/jobs
 EFS_NAME="AWS_EFS_NAME"
 ORG_NAME="ENV_ORG_NAME"
 TEAM_NAME="ENV_TEAM_NAME"
@@ -30,6 +31,10 @@ mkdir -p $JENKINS_LOG_HOME
 chown jenkins:jenkins $JENKINS_LOG_HOME 
 echo "Log directory $JENKINS_LOG_HOME created."
 
+mkdir -p $JENKINS_JOB_HOME
+chown jenkins:jenkins $JENKINS_JOB_HOME 
+echo "Job directory $JENKINS_JOB_HOME created."
+
 mkdir -p $JENKINS_CAAS_HOME
 chown jenkins:jenkins $JENKINS_CAAS_HOME
 chmod 0755 $JENKINS_CAAS_HOME
@@ -44,16 +49,16 @@ cp jenkins-deploy-script/plugins_default.txt $JENKINS_HOME/plugins_default.txt
 cp jenkins-deploy-script/override.conf $JENKINS_CAAS_HOME/override.conf
 cp jenkins-deploy-script/systemd.service /usr/lib/systemd/system/jenkins.service
 
-FILE_SYSTEM_ID=$(aws efs describe-file-systems --query "FileSystems[?Name=='$EFS_NAME'].FileSystemId" --output text)
-
-DNS_ADDRESSES=$(aws efs describe-file-systems --file-system-id "$FILE_SYSTEM_ID" --query "FileSystems[*].[FileSystemId]" --output text | awk '{print $1".efs.ap-northeast-2.amazonaws.com"}')
-
-mount -t nfs4 -o nfsvers=4.1,rsize=1048576,wsize=1048576,hard,timeo=600,retrans=2,noresvport $DNS_ADDRESSES:/ $JENKINS_HOME/jobs
-
 chmod +x $JENKINS_HOME/install-plugin.sh
 chmod +x /usr/local/bin/jenkins-support
 
 $JENKINS_HOME/install-plugin.sh < $JENKINS_HOME/plugins_default.txt
+
+FILE_SYSTEM_ID=$(aws efs describe-file-systems --query "FileSystems[?Name=='$EFS_NAME'].FileSystemId" --output text)
+
+DNS_ADDRESSES=$(aws efs describe-file-systems --file-system-id "$FILE_SYSTEM_ID" --query "FileSystems[*].[FileSystemId]" --output text | awk '{print $1".efs.ap-northeast-2.amazonaws.com"}')
+
+mount -t nfs4 -o nfsvers=4.1,rsize=1048576,wsize=1048576,hard,timeo=600,retrans=2,noresvport $DNS_ADDRESSES:/ $JENKINS_JOB_HOME
 
 chown -R jenkins:jenkins $JENKINS_CAAS_HOME
 chown -R jenkins:jenkins $JENKINS_HOME
