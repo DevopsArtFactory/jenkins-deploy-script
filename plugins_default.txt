@@ -1,9 +1,8 @@
 # Visit https://<jenkis-url>/manage/script and run under command
 # Jenkins.instance.pluginManager.plugins.each{
 #   plugin ->
-#     println ("${plugin.getDisplayName()} (${plugin.getShortName()}): ${plugin.getVersion()}")
+#     println ("${plugin.getShortName()}:${plugin.getVersion()}")
 # }
-ace-editor:1.1
 analysis-model-api:12.4.0
 ant:511.v0a_a_1a_334f41b_
 antisamy-markup-formatter:162.v0e6ec0fcfcf6
@@ -38,7 +37,6 @@ aws-java-sdk-sns:1.12.767-467.vb_e93f0c614b_6
 aws-java-sdk-sqs:1.12.767-467.vb_e93f0c614b_6
 aws-java-sdk-ssm:1.12.767-467.vb_e93f0c614b_6
 aws-java-sdk:1.12.767-467.vb_e93f0c614b_6
-bootstrap4-api:4.6.0-6
 bootstrap5-api:5.3.3-1
 bouncycastle-api:2.30.1.78.1-248.ve27176eb_46cb_
 branch-api:2.1178.v969d9eb_c728e
@@ -75,7 +73,6 @@ github-oauth:597.ve0c3480fcb_d0
 github:1.40.0
 gradle:2.12.1
 gson-api:2.11.0-41.v019fcf6125dc
-handlebars:3.0.8
 htmlpublisher:1.36
 instance-identity:185.v303dc7c645f9
 ionicons-api:74.v93d5eb_813d5f
@@ -91,7 +88,6 @@ jjwt-api:0.11.5-112.ve82dfb_224b_a_d
 jnr-posix-api:3.1.19-2
 job-dsl:1.87
 joda-time-api:2.12.7-29.v5a_b_e3a_82269a_
-jquery-detached:1.2.1
 jquery3-api:3.7.1-2
 jsch:0.2.16-86.v42e010d9484b_
 json-api:20240303-41.v94e11e6de726
@@ -105,7 +101,6 @@ matrix-project:832.va_66e270d2946
 maven-plugin:3.23
 mina-sshd-api-common:2.13.2-125.v200281b_61d59
 mina-sshd-api-core:2.13.2-125.v200281b_61d59
-momentjs:1.1.1
 okhttp-api:4.11.0-172.vda_da_1feeb_c6e
 pam-auth:1.11
 parameterized-trigger:806.vf6fff3e28c3e
@@ -125,8 +120,6 @@ pipeline-stage-tags-metadata:2.2205.vc9522a_9d5711
 pipeline-stage-view:2.34
 plain-credentials:183.va_de8f1dd5a_2b_
 plugin-util-api:4.1.0
-popper-api:1.16.1-3
-popper2-api:2.11.6-5
 pretested-integration:3.1.2
 prism-api:1.29.0-17
 rebuild:332.va_1ee476d8f6d
@@ -154,7 +147,6 @@ warnings-ng:11.4.1
 workflow-aggregator:600.vb_57cdd26fdd7
 workflow-api:1336.vee415d95c521
 workflow-basic-steps:1058.vcb_fc1e3a_21a_9
-workflow-cps-global-lib:612.v55f2f80781ef
 workflow-cps:3943.v3519a_3260660
 workflow-durable-task-step:1371.vb_7cec8f3b_95e
 workflow-job:1436.vfa_244484591f
