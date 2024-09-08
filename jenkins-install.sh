@@ -18,7 +18,7 @@ dnf update -y && dnf install -y java-17-amazon-corretto-devel wget git
 wget -O /etc/yum.repos.d/jenkins.repo https://pkg.jenkins.io/redhat-stable/jenkins.repo && rpm --import https://pkg.jenkins.io/redhat-stable/jenkins.io.key
 
 # Jenkins 설치
-dnf install -y --nogpgcheck jenkins-2.462.1-1.1
+dnf install -y --nogpgcheck jenkins-2.462.2-1.1
 
 #efs util 설치
 yum install -y amazon-efs-utils
