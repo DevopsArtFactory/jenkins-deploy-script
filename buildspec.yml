@@ -10,6 +10,7 @@ env:
     ORG_NAME: ""
     TEAM_NAME: ""
     INSTANCE_TYPE: t3.medium
+    PROFILE_NAME: jenkins-profile
   parameter-store:
     GITHUB_TOKEN: "/CodeBuild/GITHUB_TOKEN"
 
@@ -74,7 +75,7 @@ phases:
 
       # 새로운 Launch Configuration 생성
       - echo "Creating new Launch Configuration..."
-      - aws autoscaling create-launch-configuration --launch-configuration-name $NEW_LAUNCH_CONFIG_NAME --image-id ami-0c2acfcb2ac4d02a0 --instance-type $INSTANCE_TYPE --user-data file:///tmp/userdata.sh --security-groups $SECURITY_GROUP_ID --iam-instance-profile jenkins-profile
+      - aws autoscaling create-launch-configuration --launch-configuration-name $NEW_LAUNCH_CONFIG_NAME --image-id ami-0c2acfcb2ac4d02a0 --instance-type $INSTANCE_TYPE --user-data file:///tmp/userdata.sh --security-groups $SECURITY_GROUP_ID --iam-instance-profile $PROFILE_NAME
 
       # 최초 배포인 경우 ASG 생성, 그렇지 않으면 기존 ASG 업데이트
       - |
