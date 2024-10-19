@@ -1,0 +1,13 @@
+version: 0.2
+
+env:
+  variables:
+    SERVICE_NAME: "test"
+
+phases:
+  install:
+    commands:
+      - aws --version
+  build:
+    commands:
+      - echo "This is Test CodeBuild Project"      
