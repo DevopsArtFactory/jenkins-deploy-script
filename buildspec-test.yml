@@ -10,4 +10,4 @@ phases:
       - aws --version
   build:
     commands:
-      - echo "This is Test CodeBuild Project"      
+      - echo "This is ${SERVICE_NAME} CodeBuild Project"      
