@@ -120,7 +120,20 @@ phases:
           if [ $HEALTHY_INSTANCES -eq $(echo $INSTANCE_IDS | wc -w) ]; then
               echo "All instances are healthy. Proceeding with ASG deletion.";
               # 기존 Auto Scaling Group 삭제
-              aws autoscaling delete-auto-scaling-group --auto-scaling-group-name $ACTIVE_ASG --force-delete;
+              for group in $(aws autoscaling describe-auto-scaling-groups \
+                  --query "AutoScalingGroups[?starts_with(AutoScalingGroupName, '${SERVICE_NAME}')].AutoScalingGroupName" \
+                  --output text); do
+                  # GREEN_ASG_NAME과 동일한 이름은 제외
+                  if [ "$group" != "$GREEN_ASG_NAME" ]; then
+                      # Auto Scaling 그룹 삭제
+                      aws autoscaling delete-auto-scaling-group \
+                          --auto-scaling-group-name "$group" \
+                          --force-delete
+                      echo "Deleted Auto Scaling Group: $group"
+                  else
+                      echo "Skipped Auto Scaling Group: $group (matches GREEN_ASG_NAME)"
+                  fi
+              done
           else
               echo "Not all instances are healthy after retries. Aborting ASG deletion.";
               exit 1
